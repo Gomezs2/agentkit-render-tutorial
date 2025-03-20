@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // List of paths that don't require authentication
-const publicPaths = ["/login", "/api/auth", "/api/inngest"];
+// TODO: Remove /api/admin/registerHTE from this list once testing is complete
+const publicPaths = ["/login", "/api/auth", "/api/inngest", "/api/admin/registerHTE"];
 
 export function middleware(request: NextRequest) {
   const isAuthenticated = request.cookies.has("auth");
