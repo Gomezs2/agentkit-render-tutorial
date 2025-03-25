@@ -32,22 +32,20 @@
 -- TheKnowledgeableTraveler 
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- Stores significant event data for a city
+-- Create the unified events table with hierarchical structure
 CREATE TABLE IF NOT EXISTS events (
-    event_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    city VARCHAR(255),
-    year INT,
-    event_name VARCHAR(255),
-    event_date DATE,
-    created_at TIMESTAMP DEFAULT NOW()
+    event_id SERIAL PRIMARY KEY,
+    city VARCHAR(255) NOT NULL,
+    year INT NOT NULL,
+    event_name VARCHAR(255) NOT NULL,
+    event_type VARCHAR(50) NOT NULL, -- Significant, Minor, etc.
+    event_date DATE NOT NULL,
+    parent_event_id INT REFERENCES events(event_id) ON DELETE SET NULL, -- Self-reference for hierarchical relationship
+    metadata JSONB, -- Flexible field for additional event-specific details
+    embedding vector(1536), -- For semantic search integration
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- Stores minor events data for a city
-CREATE TABLE IF NOT EXISTS related_events (
-    related_event_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    event_id INT REFERENCES events(event_id) ON DELETE CASCADE,
-    related_event_name VARCHAR(255),
-    related_event_date DATE,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
+-- Create an index for more efficient similarity searches
+CREATE INDEX IF NOT EXISTS events_embedding_idx ON events USING ivfflat (embedding vector_l2_ops) WITH (lists = 100);
