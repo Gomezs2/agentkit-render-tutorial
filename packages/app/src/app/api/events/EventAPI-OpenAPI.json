@@ -1,0 +1,763 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Events API",
+    "version": "1.0.0",
+    "description": "API for managing events and their related events"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development server"
+    }
+  ],
+  "paths": {
+    "/api/events/recent": {
+      "get": {
+        "summary": "Get recent events",
+        "description": "Retrieve a list of recent events with their related events, ordered by creation date",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of events to return",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of recent events retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "mainEvent": {
+                            "type": "object",
+                            "properties": {
+                              "event_id": {
+                                "type": "integer",
+                                "description": "Unique identifier for the event"
+                              },
+                              "city": {
+                                "type": "string",
+                                "description": "City where the event takes place"
+                              },
+                              "year": {
+                                "type": "integer",
+                                "description": "Year of the event"
+                              },
+                              "event_name": {
+                                "type": "string",
+                                "description": "Name of the event"
+                              },
+                              "event_type": {
+                                "type": "string",
+                                "enum": ["Significant", "Minor", "Workshop", "Conference", "Social"],
+                                "description": "Type of the event"
+                              },
+                              "event_date": {
+                                "type": "string",
+                                "format": "date",
+                                "description": "Date of the event in YYYY-MM-DD format"
+                              },
+                              "parent_event_id": {
+                                "type": "integer",
+                                "nullable": true,
+                                "description": "ID of the parent event if this is a related event"
+                              },
+                              "metadata": {
+                                "type": "object",
+                                "description": "Additional metadata for the event"
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "Timestamp when the event was created"
+                              },
+                              "updated_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "Timestamp when the event was last updated"
+                              }
+                            },
+                            "required": ["event_id", "city", "year", "event_name", "event_type", "event_date", "created_at", "updated_at"]
+                          },
+                          "relatedEvents": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "event_id": {
+                                  "type": "integer",
+                                  "description": "Unique identifier for the event"
+                                },
+                                "city": {
+                                  "type": "string",
+                                  "description": "City where the event takes place"
+                                },
+                                "year": {
+                                  "type": "integer",
+                                  "description": "Year of the event"
+                                },
+                                "event_name": {
+                                  "type": "string",
+                                  "description": "Name of the event"
+                                },
+                                "event_type": {
+                                  "type": "string",
+                                  "enum": ["Significant", "Minor", "Workshop", "Conference", "Social"],
+                                  "description": "Type of the event"
+                                },
+                                "event_date": {
+                                  "type": "string",
+                                  "format": "date",
+                                  "description": "Date of the event in YYYY-MM-DD format"
+                                },
+                                "parent_event_id": {
+                                  "type": "integer",
+                                  "nullable": true,
+                                  "description": "ID of the parent event if this is a related event"
+                                },
+                                "metadata": {
+                                  "type": "object",
+                                  "description": "Additional metadata for the event"
+                                },
+                                "created_at": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "description": "Timestamp when the event was created"
+                                },
+                                "updated_at": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "description": "Timestamp when the event was last updated"
+                                }
+                              },
+                              "required": ["event_id", "city", "year", "event_name", "event_type", "event_date", "created_at", "updated_at"]
+                            }
+                          }
+                        },
+                        "required": ["mainEvent", "relatedEvents"]
+                      }
+                    }
+                  },
+                  "required": ["success", "events"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string",
+                            "example": "year"
+                          },
+                          "message": {
+                            "type": "string",
+                            "example": "Year must be 2024 or later"
+                          }
+                        },
+                        "required": ["field", "message"]
+                      }
+                    }
+                  },
+                  "required": ["success", "error", "details"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Failed to fetch event"
+                    }
+                  },
+                  "required": ["success", "error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/search": {
+      "get": {
+        "summary": "Search events",
+        "description": "Search for events with optional filters for city and year",
+        "parameters": [
+          {
+            "name": "city",
+            "in": "query",
+            "description": "Filter events by city (case-insensitive)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "description": "Filter events by year (must be 2024 or later)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 2024
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of events to return",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "mainEvent": {
+                            "type": "object",
+                            "properties": {
+                              "event_id": {
+                                "type": "integer",
+                                "description": "Unique identifier for the event"
+                              },
+                              "city": {
+                                "type": "string",
+                                "description": "City where the event takes place"
+                              },
+                              "year": {
+                                "type": "integer",
+                                "description": "Year of the event"
+                              },
+                              "event_name": {
+                                "type": "string",
+                                "description": "Name of the event"
+                              },
+                              "event_type": {
+                                "type": "string",
+                                "enum": ["Significant", "Minor", "Workshop", "Conference", "Social"],
+                                "description": "Type of the event"
+                              },
+                              "event_date": {
+                                "type": "string",
+                                "format": "date",
+                                "description": "Date of the event in YYYY-MM-DD format"
+                              },
+                              "parent_event_id": {
+                                "type": "integer",
+                                "nullable": true,
+                                "description": "ID of the parent event if this is a related event"
+                              },
+                              "metadata": {
+                                "type": "object",
+                                "description": "Additional metadata for the event"
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "Timestamp when the event was created"
+                              },
+                              "updated_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "Timestamp when the event was last updated"
+                              }
+                            },
+                            "required": ["event_id", "city", "year", "event_name", "event_type", "event_date", "created_at", "updated_at"]
+                          },
+                          "relatedEvents": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "event_id": {
+                                  "type": "integer",
+                                  "description": "Unique identifier for the event"
+                                },
+                                "city": {
+                                  "type": "string",
+                                  "description": "City where the event takes place"
+                                },
+                                "year": {
+                                  "type": "integer",
+                                  "description": "Year of the event"
+                                },
+                                "event_name": {
+                                  "type": "string",
+                                  "description": "Name of the event"
+                                },
+                                "event_type": {
+                                  "type": "string",
+                                  "enum": ["Significant", "Minor", "Workshop", "Conference", "Social"],
+                                  "description": "Type of the event"
+                                },
+                                "event_date": {
+                                  "type": "string",
+                                  "format": "date",
+                                  "description": "Date of the event in YYYY-MM-DD format"
+                                },
+                                "parent_event_id": {
+                                  "type": "integer",
+                                  "nullable": true,
+                                  "description": "ID of the parent event if this is a related event"
+                                },
+                                "metadata": {
+                                  "type": "object",
+                                  "description": "Additional metadata for the event"
+                                },
+                                "created_at": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "description": "Timestamp when the event was created"
+                                },
+                                "updated_at": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "description": "Timestamp when the event was last updated"
+                                }
+                              },
+                              "required": ["event_id", "city", "year", "event_name", "event_type", "event_date", "created_at", "updated_at"]
+                            }
+                          }
+                        },
+                        "required": ["mainEvent", "relatedEvents"]
+                      }
+                    }
+                  },
+                  "required": ["success", "events"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string",
+                            "example": "year"
+                          },
+                          "message": {
+                            "type": "string",
+                            "example": "Year must be 2024 or later"
+                          }
+                        },
+                        "required": ["field", "message"]
+                      }
+                    }
+                  },
+                  "required": ["success", "error", "details"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Failed to fetch event"
+                    }
+                  },
+                  "required": ["success", "error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{id}": {
+      "get": {
+        "summary": "Get event by ID",
+        "description": "Retrieve a specific event by ID. Can return either just the event details or the full structure including related events.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the event to retrieve",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "include_related",
+            "in": "query",
+            "description": "Whether to include related events in the response",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false"],
+              "default": "true"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Event retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "event": {
+                          "type": "object",
+                          "properties": {
+                            "mainEvent": {
+                              "type": "object",
+                              "properties": {
+                                "event_id": {
+                                  "type": "integer",
+                                  "description": "Unique identifier for the event"
+                                },
+                                "city": {
+                                  "type": "string",
+                                  "description": "City where the event takes place"
+                                },
+                                "year": {
+                                  "type": "integer",
+                                  "description": "Year of the event"
+                                },
+                                "event_name": {
+                                  "type": "string",
+                                  "description": "Name of the event"
+                                },
+                                "event_type": {
+                                  "type": "string",
+                                  "enum": ["Significant", "Minor", "Workshop", "Conference", "Social"],
+                                  "description": "Type of the event"
+                                },
+                                "event_date": {
+                                  "type": "string",
+                                  "format": "date",
+                                  "description": "Date of the event in YYYY-MM-DD format"
+                                },
+                                "parent_event_id": {
+                                  "type": "integer",
+                                  "nullable": true,
+                                  "description": "ID of the parent event if this is a related event"
+                                },
+                                "metadata": {
+                                  "type": "object",
+                                  "description": "Additional metadata for the event"
+                                },
+                                "created_at": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "description": "Timestamp when the event was created"
+                                },
+                                "updated_at": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "description": "Timestamp when the event was last updated"
+                                }
+                              },
+                              "required": ["event_id", "city", "year", "event_name", "event_type", "event_date", "created_at", "updated_at"]
+                            },
+                            "relatedEvents": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "event_id": {
+                                    "type": "integer",
+                                    "description": "Unique identifier for the event"
+                                  },
+                                  "city": {
+                                    "type": "string",
+                                    "description": "City where the event takes place"
+                                  },
+                                  "year": {
+                                    "type": "integer",
+                                    "description": "Year of the event"
+                                  },
+                                  "event_name": {
+                                    "type": "string",
+                                    "description": "Name of the event"
+                                  },
+                                  "event_type": {
+                                    "type": "string",
+                                    "enum": ["Significant", "Minor", "Workshop", "Conference", "Social"],
+                                    "description": "Type of the event"
+                                  },
+                                  "event_date": {
+                                    "type": "string",
+                                    "format": "date",
+                                    "description": "Date of the event in YYYY-MM-DD format"
+                                  },
+                                  "parent_event_id": {
+                                    "type": "integer",
+                                    "nullable": true,
+                                    "description": "ID of the parent event if this is a related event"
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "description": "Additional metadata for the event"
+                                  },
+                                  "created_at": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "Timestamp when the event was created"
+                                  },
+                                  "updated_at": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "Timestamp when the event was last updated"
+                                  }
+                                },
+                                "required": ["event_id", "city", "year", "event_name", "event_type", "event_date", "created_at", "updated_at"]
+                              }
+                            }
+                          },
+                          "required": ["mainEvent", "relatedEvents"]
+                        }
+                      },
+                      "required": ["success", "event"]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "event": {
+                          "type": "object",
+                          "properties": {
+                            "event_id": {
+                              "type": "integer",
+                              "description": "Unique identifier for the event"
+                            },
+                            "city": {
+                              "type": "string",
+                              "description": "City where the event takes place"
+                            },
+                            "year": {
+                              "type": "integer",
+                              "description": "Year of the event"
+                            },
+                            "event_name": {
+                              "type": "string",
+                              "description": "Name of the event"
+                            },
+                            "event_type": {
+                              "type": "string",
+                              "enum": ["Significant", "Minor", "Workshop", "Conference", "Social"],
+                              "description": "Type of the event"
+                            },
+                            "event_date": {
+                              "type": "string",
+                              "format": "date",
+                              "description": "Date of the event in YYYY-MM-DD format"
+                            },
+                            "parent_event_id": {
+                              "type": "integer",
+                              "nullable": true,
+                              "description": "ID of the parent event if this is a related event"
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "description": "Additional metadata for the event"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "description": "Timestamp when the event was created"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "description": "Timestamp when the event was last updated"
+                            }
+                          },
+                          "required": ["event_id", "city", "year", "event_name", "event_type", "event_date", "created_at", "updated_at"]
+                        }
+                      },
+                      "required": ["success", "event"]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid event ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string",
+                            "example": "id"
+                          },
+                          "message": {
+                            "type": "string",
+                            "example": "Invalid event ID"
+                          }
+                        },
+                        "required": ["field", "message"]
+                      }
+                    }
+                  },
+                  "required": ["success", "error", "details"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Event not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Event not found"
+                    }
+                  },
+                  "required": ["success", "error"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Failed to fetch event"
+                    }
+                  },
+                  "required": ["success", "error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+} 
