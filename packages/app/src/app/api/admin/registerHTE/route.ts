@@ -2,20 +2,26 @@ import { NextResponse } from 'next/server';
 import { createHTE } from '@/lib/db';
 import { z } from 'zod';
 
-// Validation schema for the payload
-const RelatedEventSchema = z.object({
-  name: z.string().min(1, "Related event name is required"),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format")
+// Base event schema with common fields for both main and related events
+const BaseEventSchema = z.object({
+  name: z.string().min(1, "Event name is required"),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
+  event_type: z.enum(['Significant', 'Minor', 'Workshop', 'Conference', 'Social']),
+  metadata: z.record(z.any()).optional(),
 });
 
+// Validation schema for the payload
 const HTEPayloadSchema = z.object({
+  name: z.string().min(1, "Event name is required"),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
+  event_type: z.enum(['Significant', 'Minor', 'Workshop', 'Conference', 'Social']),
+  metadata: z.record(z.any()).optional(),
   city: z.string().min(1, "City is required"),
   year: z.number().int().min(2024, "Year must be 2024 or later"),
-  event_name: z.string().min(1, "Event name is required"),
-  event_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
-  related_events: z.array(RelatedEventSchema)
-    .min(1, "At least one related event is required")
-    .max(10, "Maximum 10 related events allowed")
+  related_events: z.array(BaseEventSchema)
+    .max(20, "Maximum 20 related events allowed")
+    .optional()
+    .default([]),
 });
 
 export async function POST(request: Request) {
@@ -26,10 +32,26 @@ export async function POST(request: Request) {
     const validatedData = HTEPayloadSchema.parse({
       ...body,
       // Ensure year is a number
-      year: typeof body.year === 'string' ? parseInt(body.year, 10) : body.year
+      year: typeof body.year === 'string' ? parseInt(body.year, 10) : body.year,
     });
 
-    const result = await createHTE(validatedData);
+    // Prepare data for database entry
+    const dbPayload = {
+      city: validatedData.city,
+      year: validatedData.year,
+      event_name: validatedData.name,
+      event_date: validatedData.date,
+      event_type: validatedData.event_type,
+      metadata: validatedData.metadata,
+      related_events: (validatedData.related_events || []).map(event => ({
+        name: event.name,
+        date: event.date,
+        event_type: event.event_type,
+        metadata: event.metadata
+      }))
+    };
+
+    const result = await createHTE(dbPayload);
 
     return NextResponse.json({ 
       success: true, 
@@ -37,9 +59,7 @@ export async function POST(request: Request) {
       eventId: result.eventId 
     });
 
-  } catch (error) {
-    console.error('Error creating event:', error);
-    
+  } catch (error: unknown) {
     // Handle Zod validation errors specifically
     if (error instanceof z.ZodError) {
       return NextResponse.json(

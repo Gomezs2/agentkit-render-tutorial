@@ -2,10 +2,15 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // List of paths that don't require authentication
-// TODO: Remove /api/admin/registerHTE from this list once testing is complete
-const publicPaths = ["/login", "/api/auth", "/api/inngest", "/api/admin/registerHTE"];
+// TODO: Remove "/api/admin/**", "/api/events/**" from this list once testing is complete
+const publicPaths = ["/login", "/api/auth", "/api/inngest", "/api/admin/**", "/api/events/**"];
 
 export function middleware(request: NextRequest) {
+  // Skip authentication in development mode
+  if (process.env.NODE_ENV === "development") {
+    return NextResponse.next();
+  }
+
   const isAuthenticated = request.cookies.has("auth");
   const isPublicPath = publicPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)

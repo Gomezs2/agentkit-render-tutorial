@@ -1,4 +1,3 @@
--- CREATE EXTENSION IF NOT EXISTS vector;
 
 -- CREATE TABLE IF NOT EXISTS interests (
 --   id SERIAL PRIMARY KEY,
@@ -42,10 +41,6 @@ CREATE TABLE IF NOT EXISTS events (
     event_date DATE NOT NULL,
     parent_event_id INT REFERENCES events(event_id) ON DELETE SET NULL, -- Self-reference for hierarchical relationship
     metadata JSONB, -- Flexible field for additional event-specific details
-    embedding vector(1536), -- For semantic search integration
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
--- Create an index for more efficient similarity searches
-CREATE INDEX IF NOT EXISTS events_embedding_idx ON events USING ivfflat (embedding vector_l2_ops) WITH (lists = 100);
